@@ -1,0 +1,11 @@
+{
+    "CALIBRE_DB_PATH": "./library",
+    "BABELIO_URL": "https://www.babelio.com",
+    "QUERY_WITH_IDENTIFIER": false,
+    "SLEEP_IN_SECONDE" : 20,
+    "SLEEP_AFTER_NB_BOOKS": 5,
+    "SLEEP_BETWEEN_BOOKS": 5,
+    "USE_VIRTUEL_LIBRARY_NAME": "Fra",
+    "USE_CALIBRE_QUERY": "",
+    "DEBUG": false
+}

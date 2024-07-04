@@ -48,7 +48,7 @@ def get_calibre_books_old():
         #break
     print("Got {} book IDs from Calibre library".format(len(book_ids)))
 
-def get_all_books_by_query(query: str, debug=True):
+def get_calibre_books(debug=True):
 
     """Get all books by.
 
@@ -309,7 +309,7 @@ def parse_search_results(orig_title, orig_authors, soup, debug=True):
 
 # - Run the Job and pray :D 
 if __name__ == "__main__":
-    #results = get_calibre_books()
+    
     base_url=config.BABELIO_URL
     debug=config.DEBUG
 
@@ -324,7 +324,7 @@ if __name__ == "__main__":
     sauthors = []
     #stitle = []
 
-    results = get_all_books_by_query(query, debug=debug)
+    results = get_calibre_books(debug=debug)
     if len(results) == 0:
         print("No results found")
         exit(1)
