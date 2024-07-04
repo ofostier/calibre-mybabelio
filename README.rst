@@ -24,7 +24,7 @@ Rename `config.json.sample` to `config.json` and update the values accordingly.
 - UNIQUE_AGENT_ID: This is the unique agent ID used to fetch data on ComicVine as per the API documentation. It says to use something unique and meaningful. E.g: "ajite super manga fet
 - BABELIO_URL: "https://www.babelio.com" (should not change :D )
 - QUERY_WITH_IDENTIFIER": false, (Deprecated) let stay at FALSE
-- USE_VIRTUEL_LIBRARY_NAME: Set a name of a virtual library to use it,
+- USE_VIRTUEL_LIBRARY_NAME: Set a name of a virtual library to use it or let blank to use Query
 - USE_CALIBRE_QUERY: Set a Calibre Query to use this mode (eg. 'languages:"fra" and tags:false' )
 - DEBUG: false/true For verbose mode
 
