@@ -7,8 +7,10 @@ class Config:
     QUERY_WITH_IDENTIFIER = False
     BABELIO_URL = None
     SLEEP_BETWEEN_BOOKS = 5
-    USE_VIRTUEL_LIBRARY_NAME = None,
-    USE_CALIBRE_QUERY = None,
+    NB_BOOKS_BEFORE_SLEEP = None
+    SLEEP_AFTER_NB_BOOKS = None
+    USE_VIRTUEL_LIBRARY_NAME = None
+    USE_CALIBRE_QUERY = None
     DEBUG = None
 
 
@@ -18,6 +20,8 @@ class Config:
         self.QUERY_WITH_IDENTIFIER = config.get("QUERY_WITH_IDENTIFIER")
         self.BABELIO_URL = config.get("BABELIO_URL")
         self.SLEEP_BETWEEN_BOOKS = config.get("SLEEP_BETWEEN_BOOKS")
+        self.NB_BOOKS_BEFORE_SLEEP = config.get("NB_BOOKS_BEFORE_SLEEP")
+        self.SLEEP_AFTER_NB_BOOKS = config.get("SLEEP_AFTER_NB_BOOKS")
         self.USE_VIRTUEL_LIBRARY_NAME = config.get("USE_VIRTUEL_LIBRARY_NAME")
         self.USE_CALIBRE_QUERY = config.get("USE_CALIBRE_QUERY")
         self.DEBUG = config.get("DEBUG")

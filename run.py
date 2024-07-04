@@ -330,7 +330,9 @@ if __name__ == "__main__":
         exit(1)
 
     print(str(len(results)) + ' book(s) found !!')
+    cnt=0
     for book in results:
+        cnt+=1
         # Query babelio website
         # print(book.authors)
         # print("================================")
@@ -356,7 +358,11 @@ if __name__ == "__main__":
                 calibre_db.set_metadata(book.id, mi)
                 
         # Sleep to avoid bann
-        if config.SLEEP_BETWEEN_BOOKS > 0:
+        if cnt == config.NB_BOOKS_BEFORE_SLEEP:
+            cnt = 0
+            print("\nSleeping... ", config.SLEEP_AFTER_NB_BOOKS, '\n\n')
+            time.sleep(config.SLEEP_BETWEEN_BOOKS)
+        elif config.SLEEP_BETWEEN_BOOKS > 0:
             print("\nSleeping... ", config.SLEEP_BETWEEN_BOOKS, '\n\n')
         time.sleep(config.SLEEP_BETWEEN_BOOKS)
 
