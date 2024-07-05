@@ -145,7 +145,7 @@ def parse_details(soup, url, debug=True):
       print('Erreur en cherchant le résumé : %r' % url)
       print(e)
 # keep actual behavior
-  if not with_pretty_comments:
+  if not with_pretty_comments and not comments == None:
       bbl_comments =  BS('',"lxml")         # cree une page totalement vide pui
       bbl_comments.append(comments)         # append comments... this will correctly 'allign' the tags
   else:
