@@ -327,7 +327,6 @@ def parse_meta(soup, debug=True):
   for mta in (meta_soup.stripped_strings):
       print(mta)
       if "EAN" in mta:
-          print("C'EST UN EAN !! >>")
           tmp_sbn = mta.split()
           bbl_isbn = check_isbn(tmp_sbn[-1])
           if debug:
@@ -389,22 +388,16 @@ def check_isbn13(isbn):
     return False
 
 def check_isbn(isbn, simple_sanitize=False):
-    
-    print("ISBN 1: ", isbn)
     if not isbn:
         return None
     if simple_sanitize:
         isbn = isbn.upper().replace('-', '').strip().replace(' ', '')
     else:
-        print("test RE.SUB .......>")
         try:
             isbn = re.sub(r'[^0-9X]', '', isbn.upper())
         except Exception as e:
             print('ERREUR FATAL', e)
         
-        #isbn = re.sub(r'[^0-9X]', '', isbn.upper())
-    
-    print("ISBN 2: ", isbn)
 
     il = len(isbn)
     if il not in (10, 13):
