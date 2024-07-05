@@ -12,7 +12,7 @@ from calibre.ebooks.metadata.book.base import Metadata
 
 ID_NAME = 'babelio_id'
 with_cover = False
-with_pretty_comments = False
+with_pretty_comments = True
 with_detailed_rating = False
 bbl_id = None
 
