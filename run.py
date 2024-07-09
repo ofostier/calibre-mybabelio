@@ -4,6 +4,7 @@ import re
 import datetime
 import time
 from os import walk
+import logging
 from difflib import SequenceMatcher as SM
 #from mybbllib import bbllib 
 from config import config
@@ -16,7 +17,28 @@ from calibre.ebooks.metadata.sources.base import  (Source, Option)
 #from calibre import browser, random_user_agent
 
 
+class CustomFormatter(logging.Formatter):
 
+    grey = "\x1b[38;20m"
+    yellow = "\x1b[33;20m"
+    red = "\x1b[31;20m"
+    bold_red = "\x1b[31;1m"
+    reset = "\x1b[0m"
+    format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
+
+    FORMATS = {
+        logging.DEBUG: grey + format + reset,
+        logging.INFO: grey + format + reset,
+        logging.WARNING: yellow + format + reset,
+        logging.ERROR: red + format + reset,
+        logging.CRITICAL: bold_red + format + reset
+    }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
+    
 
 def parse_path (path="./"):
     f = []
@@ -313,8 +335,27 @@ if __name__ == "__main__":
     base_url=config.BABELIO_URL
     debug=config.DEBUG
 
+    # create logger with 'spam_application'
+    logger = logging.getLogger("My_app")
+    logger.setLevel(logging.DEBUG)
+
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+
+    ch.setFormatter(CustomFormatter())
+    logger.addHandler(ch)
+
     if debug:
-        print("DEBUG: " + str(debug))
+        logger.critical("DEBUG is: " + str(debug))
+        logger.debug("debug message")
+        logger.info("info message")
+        logger.warning("warning message")
+        logger.error("error message")
+        logger.critical("critical message")
+        exit()
+        time.sleep(100)
+
     Source._browser = None
 
     calibre_db = calibre.library.db(config.CALIBRE_DB_PATH).new_api
@@ -336,7 +377,7 @@ if __name__ == "__main__":
         # Query babelio website
         # print(book.authors)
         # print("================================")
-        sauthors =(book.authors)
+        sauthors = book.authors
         stitle = book.title
 
 

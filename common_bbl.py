@@ -77,3 +77,33 @@ def urlopen_web(url, rkt):
 
     return response_string
 
+def urlopen_search(url, rkt):
+    #url='https://www.babelio.com'
+    #url=base_url+url
+
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Basic'
+    }
+    
+    if rkt:
+        body = parse.urlencode(#{
+            #'Recherche': 'Celimene Edwidge Danticat',
+            #'Recherche': author + " " + title,
+            rkt
+        #}
+        )
+        body = body.encode()
+
+        # Send a search request
+        req = Request(url, data=body, method='POST') # headers=headers)
+    else:
+        req = url
+
+    print("Go URL: " + url)
+
+    with urlopen(req) as response:
+        response_string = response.read()
+        response_string = response_string.decode('ISO-8859-1')
+
+    return response_string
