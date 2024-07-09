@@ -1,4 +1,7 @@
-from common_bbl import ret_soup
+import sys
+sys.path.append('/usr/local/lib/python3.10/dist-packages')
+
+from common_bbl import ret_soup,HTMLtoSOUP
 from json import loads
 import re
 import datetime
@@ -8,6 +11,10 @@ from difflib import SequenceMatcher as SM
 #from mybbllib import bbllib 
 from config import config
 import parse_lib as pl
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import mysel as sel
 
 import calibre.library
 from calibre.ebooks.metadata import title_sort, authors_to_sort_string, author_to_author_sort
@@ -93,7 +100,7 @@ def ret_clean_text(text, debug=True):
 
     # txt = lower(get_udc().decode(text))
 
-    for k in [',','.', ':','-',"'",'"','(',')','<','>','/']:             # yes I found a name with '(' and ')' in it...
+    for k in [',','.', ':','-',"'",'"','(',')','<','>','/','!']:             # yes I found a name with '(' and ')' in it...
         if k in text:
             text = text.replace(k," ")
     clntxt=" ".join(text.split())
@@ -216,10 +223,12 @@ def create_query(self, title=None, authors=None, only_first_author=True, debug=T
         # if debug: log.info("return query from create_query : ", query)
         # return query
         rkt = {"Recherche":(' '.join((au,ti))).strip()}
+        print(rkt)
+        txt = ' '.join((au,ti)).strip()
         if debug:
             print("return url from create_query : ", url)
             print("return rkt from create_query : ", rkt)
-        return url, rkt
+        return url, rkt, txt
 
 def parse_search_results(orig_title, orig_authors, soup, debug=True):
         '''
@@ -312,6 +321,7 @@ if __name__ == "__main__":
     
     base_url=config.BABELIO_URL
     debug=config.DEBUG
+    br = Source.browser
 
     if debug:
         print("DEBUG: " + str(debug))
@@ -331,6 +341,11 @@ if __name__ == "__main__":
 
     print(str(len(results)) + ' book(s) found !!')
     cnt=0
+
+    use_selenium = True
+    if use_selenium:
+        driver = sel.selenium_connect()
+
     for book in results:
         cnt+=1
         # Query babelio website
@@ -339,14 +354,39 @@ if __name__ == "__main__":
         sauthors =(book.authors)
         stitle = book.title
 
+        query,rkt, txt = create_query(Source, stitle, sauthors, debug=debug)
 
-        query,rkt = create_query(Source, stitle, sauthors, debug=debug)
-        br = Source.browser
-        soup=ret_soup(br, query, rkt=rkt, debug=debug)[0]
-        matches = parse_search_results(stitle, sauthors, soup, debug=debug)
-        
+        # Selenium part
+        if use_selenium and driver:
+            try:
+                matches = None
+                print("text: ", txt)
+                html = sel.selenium_find(driver, txt)
+                soup = HTMLtoSOUP(html)
+                print("HTML: ", soup)
+
+                x = soup.select(".ui-corner-all")
+                if len(x):
+                    for i in range(len(x)):
+                        # if debug: print('display each item found\n',x[i].prettify())             # hide it
+
+                        ftitre = (x[i].select_one(".sgst_livres_txt")).text.strip()
+                        fauthor = (x[i].select_one(".sgst_auteur_txt")).text.strip().split("<br/>")
+
+                        print("RESULT: ", ftitre, fauthor[0])
+                #sel.selenium_close(driver)
+                #exit()
+            except Exception as e:
+                print("Error: ", e)
+                sel.selenium_close(driver)
+            
+        else:
+            soup=ret_soup(br, query, rkt=rkt, debug=debug)[0]
+
+            matches = parse_search_results(stitle, sauthors, soup, debug=debug)
+
         #Parse results
-        if len(matches) == 1: #Only one matche found
+        if not matches == None and len(matches) == 1: #Only one matche found
             for url in matches:
                 url = base_url + url
                 rsp = ret_soup(br, url)
@@ -368,6 +408,9 @@ if __name__ == "__main__":
 
         # Update Calibre Metadata 
         #calibre_update_metadata(book)
+
+    if use_selenium and driver:
+        sel.selenium_close(driver)
 
 
     print("Done") 

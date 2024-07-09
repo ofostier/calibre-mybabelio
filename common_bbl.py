@@ -77,3 +77,6 @@ def urlopen_web(url, rkt):
 
     return response_string
 
+def HTMLtoSOUP(html):
+    soup = BS(html, "html5lib")
+    return soup
