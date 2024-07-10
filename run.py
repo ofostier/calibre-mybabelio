@@ -345,40 +345,40 @@ def parse_search_results_json(orig_title, orig_authors, resultjson, debug=True):
         if len(resultjson):
             for result in resultjson:
                 # if debug: print('display each item found\n',x[i].prettify())             # hide it
+                if result['type'].strip() == "livres":
+                    titre = result['titre'].strip()
+                    print("Titre JSON: ", titre)
+                # first delete serie info in titre if present
+                    # if lwr_serie:
+                    #   # get rid of serie name (assume serie name in first position with last char always "," and first ":" isolate title for serial name)
+                    #   # then split on first occurence of ":" and get second part of the string, that is the title
+                    #     titre = titre.lower().replace(lwr_serie+",","").split(":",1)[1]
+                    #     print(f"titre.lower().replace(lwr_serie+',','') ; {titre}")
 
-                titre = result['titre'].strip()
-                print("Titre JSON: ", titre)
-              # first delete serie info in titre if present
-                # if lwr_serie:
-                #   # get rid of serie name (assume serie name in first position with last char always "," and first ":" isolate title for serial name)
-                #   # then split on first occurence of ":" and get second part of the string, that is the title
-                #     titre = titre.lower().replace(lwr_serie+",","").split(":",1)[1]
-                #     print(f"titre.lower().replace(lwr_serie+',','') ; {titre}")
 
+                    ttl = ret_clean_text(titre, debug=debug)
+                    print("Titre ttl JSON: ", ttl)
+                    #time.sleep(5)
+                    orig_ttl = ret_clean_text(orig_title, debug=debug)
+                    print("Titre orig ttl JSON: ", orig_ttl)
+                    
+                    sous_url = result['url'].strip()
+                    print("URL JSON: ", sous_url)
+                    auteur = result['prenoms'].strip() + " " + result['nom'].strip()
+                    aut = ret_clean_text(auteur)
+                    print("Auteur JSON: ", aut)
 
-                ttl = ret_clean_text(titre, debug=debug)
-                print("Titre ttl JSON: ", ttl)
-                #time.sleep(5)
-                orig_ttl = ret_clean_text(orig_title, debug=debug)
-                print("Titre orig ttl JSON: ", orig_ttl)
-                
-                sous_url = result['url'].strip()
-                print("URL JSON: ", sous_url)
-                auteur = result['prenoms'].strip() + " " + result['nom'].strip()
-                aut = ret_clean_text(auteur)
-                print("Auteur JSON: ", aut)
+                    max_Ratio = 0
+                    if orig_authors:
+                        for i in range(len(orig_authors)):
+                            orig_authors[i] = ret_clean_text(orig_authors[i], debug=debug)
+                            aut_ratio = SM(None,aut,orig_authors[i]).ratio()        # compute ratio comparing auteur presented by babelio to each item of requested authors
+                            max_Ratio = max(max_Ratio, aut_ratio)                   # compute and find max ratio comparing auteur presented by babelio to each item of requested authors
 
-                max_Ratio = 0
-                if orig_authors:
-                    for i in range(len(orig_authors)):
-                        orig_authors[i] = ret_clean_text(orig_authors[i], debug=debug)
-                        aut_ratio = SM(None,aut,orig_authors[i]).ratio()        # compute ratio comparing auteur presented by babelio to each item of requested authors
-                        max_Ratio = max(max_Ratio, aut_ratio)                   # compute and find max ratio comparing auteur presented by babelio to each item of requested authors
+                    ttl_ratio = SM(None,ttl, orig_ttl).ratio()                      # compute ratio comparing titre presented by babelio to requested title
+                    unsrt_match.append((sous_url, ttl_ratio + max_Ratio))           # compute combined author and title ratio (idealy should be 2)
 
-                ttl_ratio = SM(None,ttl, orig_ttl).ratio()                      # compute ratio comparing titre presented by babelio to requested title
-                unsrt_match.append((sous_url, ttl_ratio + max_Ratio))           # compute combined author and title ratio (idealy should be 2)
-
-                if debug: print(f'titre, ratio : {titre}, {ttl_ratio},    auteur, ratio : {auteur}, {aut_ratio},  sous_url : {sous_url}')
+                    if debug: print(f'titre, ratio : {titre}, {ttl_ratio},    auteur, ratio : {auteur}, {aut_ratio},  sous_url : {sous_url}')
 
         srt_match = sorted(unsrt_match, key= lambda x: x[1], reverse=True)      # find best matches over the orig_title and orig_authors
 
@@ -416,6 +416,10 @@ if __name__ == "__main__":
     debug=config.DEBUG
     br = Source.browser
     query='languages:"fra" and tags:false'
+
+    cnt_book = 0
+    cnt_update = 0
+
     # Source._browser = None
 
     if debug:
@@ -442,6 +446,7 @@ if __name__ == "__main__":
 
     cnt=0
     for book in results:
+        cnt_book+=1
         cnt+=1
         # Query babelio website
         # print(book.authors)
@@ -488,7 +493,12 @@ if __name__ == "__main__":
 
                 # Save results into Calibre database
                 calibre_db.set_metadata(book.id, mi)
-                
+
+                cnt_update += 1
+
+        # info progress
+        print("Total: "+str(len(results)) +" / Progression: "+str(cnt_book) + " / Updated: "+str(cnt_update)) 
+           
         # Sleep to avoid bann
         if cnt == config.NB_BOOKS_BEFORE_SLEEP:
             cnt = 0
