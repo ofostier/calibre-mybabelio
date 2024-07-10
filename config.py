@@ -11,6 +11,7 @@ class Config:
     SLEEP_AFTER_NB_BOOKS = None
     USE_VIRTUEL_LIBRARY_NAME = None
     USE_CALIBRE_QUERY = None
+    USE_SELENIUM = None
     DEBUG = None
 
 
@@ -24,6 +25,7 @@ class Config:
         self.SLEEP_AFTER_NB_BOOKS = config.get("SLEEP_AFTER_NB_BOOKS")
         self.USE_VIRTUEL_LIBRARY_NAME = config.get("USE_VIRTUEL_LIBRARY_NAME")
         self.USE_CALIBRE_QUERY = config.get("USE_CALIBRE_QUERY")
+        self.USE_SELENIUM = config.get("USE_SELENIUM")
         self.DEBUG = config.get("DEBUG")
 
 config_path = os.path.join(os.path.dirname(__file__), "config.json")

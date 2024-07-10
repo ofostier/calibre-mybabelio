@@ -412,7 +412,7 @@ def parse_search_results_json(orig_title, orig_authors, resultjson, debug=True):
 if __name__ == "__main__":
     
     base_url=config.BABELIO_URL
-    use_selenium = True
+    use_selenium = config.USE_SELENIUM
     debug=config.DEBUG
     br = Source.browser
     query='languages:"fra" and tags:false'
@@ -488,7 +488,14 @@ if __name__ == "__main__":
 
                 # Save results into Calibre database
                 calibre_db.set_metadata(book.id, mi)
-                
+
+        else:
+            # Set temporary tags to avoid replay attacks
+            mi = pl.force_tags(stitle, sauthors, "babelio_error")
+
+            print("Tag force to babelio_error")
+            calibre_db.set_metadata(book.id, mi)
+
         # Sleep to avoid bann
         if cnt == config.NB_BOOKS_BEFORE_SLEEP:
             cnt = 0

@@ -201,6 +201,13 @@ def parse_details(soup, url, debug=True):
   return mi
     #result_queue.put(mi)
 
+def force_tags(stitle, sauthors, stags="metadata_error"):
+    print("Forcing des tags...")
+    mi = Metadata(stitle, sauthors)
+    mi.tags = [stags]
+
+    return mi
+
 def parse_authors(soup, debug=True):
         
         '''
