@@ -2,7 +2,7 @@ import sys
 sys.path.append('/usr/local/lib/python3.10/dist-packages')
 
 from common_bbl import ret_soup,HTMLtoSOUP
-from json import loads
+import json
 import re
 import datetime
 import time
@@ -12,8 +12,8 @@ from difflib import SequenceMatcher as SM
 from config import config
 import parse_lib as pl
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
+# from selenium import webdriver
+# from selenium.webdriver.common.by import By
 import mysel as sel
 
 import calibre.library
@@ -203,8 +203,8 @@ def create_query(self, title=None, authors=None, only_first_author=True, debug=T
         url = "https://www.babelio.com/recherche"
         rkt = None
 
-        if debug:
-            exit('create_query DEBUG')
+        # if debug:
+        #     exit('create_query DEBUG')
         if authors:
             for i in range(len(authors)):
                 print('author are : ', authors[i])
@@ -316,36 +316,131 @@ def parse_search_results(orig_title, orig_authors, soup, debug=True):
 
         return matches
 
+def parse_search_results_json(orig_title, orig_authors, resultjson, debug=True):
+        '''
+        this method returns "matches".
+        note: if several matches, the first presented in babelio will be the first in the
+        matches list; it will be submited as the first worker... (highest priority)
+        Note: only the first Babelio page will be taken into account (10 books maximum)
+        '''
+        print('In parse_search_results(self, log, orig_title, orig_authors, soup, br)')
+        #debug=self.dbg_lvl & 1
+        if debug:
+            print("orig_title    : ", orig_title)
+            print("orig_authors  : ", orig_authors)
+
+        #time.sleep(5)
+        unsrt_match, matches = [], []
+        lwr_serie = ""
+        x=None
+      # only use the first page found by babelio.com, that is a maximum of 10 books
+      # first lets get possible serie name in lower string (we do not want lose a possible ":")
+        # x = soup.select_one(".resultats_haut")
+        # if x:
+        #     # if debug: print('display serie found\n',x.prettify())                        # hide it
+        #     lwr_serie = x.text.strip().lower()
+        #     # if debug: print(f"x.text.strip().lower() : {lwr_serie}")                     # hide it
+
+        # x = soup.select(".cr_meta")
+        if len(resultjson):
+            for result in resultjson:
+                # if debug: print('display each item found\n',x[i].prettify())             # hide it
+
+                titre = result['titre'].strip()
+                print("Titre JSON: ", titre)
+              # first delete serie info in titre if present
+                # if lwr_serie:
+                #   # get rid of serie name (assume serie name in first position with last char always "," and first ":" isolate title for serial name)
+                #   # then split on first occurence of ":" and get second part of the string, that is the title
+                #     titre = titre.lower().replace(lwr_serie+",","").split(":",1)[1]
+                #     print(f"titre.lower().replace(lwr_serie+',','') ; {titre}")
+
+
+                ttl = ret_clean_text(titre, debug=debug)
+                print("Titre ttl JSON: ", ttl)
+                #time.sleep(5)
+                orig_ttl = ret_clean_text(orig_title, debug=debug)
+                print("Titre orig ttl JSON: ", orig_ttl)
+                
+                sous_url = result['url'].strip()
+                print("URL JSON: ", sous_url)
+                auteur = result['prenoms'].strip() + " " + result['nom'].strip()
+                aut = ret_clean_text(auteur)
+                print("Auteur JSON: ", aut)
+
+                max_Ratio = 0
+                if orig_authors:
+                    for i in range(len(orig_authors)):
+                        orig_authors[i] = ret_clean_text(orig_authors[i], debug=debug)
+                        aut_ratio = SM(None,aut,orig_authors[i]).ratio()        # compute ratio comparing auteur presented by babelio to each item of requested authors
+                        max_Ratio = max(max_Ratio, aut_ratio)                   # compute and find max ratio comparing auteur presented by babelio to each item of requested authors
+
+                ttl_ratio = SM(None,ttl, orig_ttl).ratio()                      # compute ratio comparing titre presented by babelio to requested title
+                unsrt_match.append((sous_url, ttl_ratio + max_Ratio))           # compute combined author and title ratio (idealy should be 2)
+
+                if debug: print(f'titre, ratio : {titre}, {ttl_ratio},    auteur, ratio : {auteur}, {aut_ratio},  sous_url : {sous_url}')
+
+        srt_match = sorted(unsrt_match, key= lambda x: x[1], reverse=True)      # find best matches over the orig_title and orig_authors
+
+        print('nombre de références trouvées dans babelio', len(srt_match))
+        if debug:                                                                           # hide_it # may be long
+            for i in range(len(srt_match)): print('srt_match[i] : ', srt_match[i])       # hide_it # may be long
+
+        for i in range(len(srt_match)):
+            #matches.append(Babelio.BASE_URL + srt_match[i][0])
+            matches.append(srt_match[i][0])
+          # if ratio = 2 (exact match on both author and title) then present only this book for this author
+            if srt_match[i][1] == 2:
+                print("YES, perfect match on both author and title, take only one.")
+                break
+
+        if not matches:
+            if debug:
+                print("matches at return time : ", len(matches))
+            return None
+        else:
+            print("nombre de matches : ", len(matches))
+            if debug:
+                print("matches at return time : ")
+                for i in range(len(matches)):
+                    print("     ", matches[i])
+
+        return matches
+
+
 # - Run the Job and pray :D 
 if __name__ == "__main__":
     
     base_url=config.BABELIO_URL
+    use_selenium = True
     debug=config.DEBUG
     br = Source.browser
+    query='languages:"fra" and tags:false'
+    # Source._browser = None
 
     if debug:
         print("DEBUG: " + str(debug))
-    Source._browser = None
 
     calibre_db = calibre.library.db(config.CALIBRE_DB_PATH).new_api
 
-    query='languages:"fra" and tags:false'
     #query='tags:false'
     sauthors = []
     #stitle = []
 
+    # Get list of books from calibre database
     results = get_calibre_books(debug=debug)
     if len(results) == 0:
         print("No results found")
         exit(1)
 
     print(str(len(results)) + ' book(s) found !!')
-    cnt=0
 
-    use_selenium = True
+    # Do we use SELENIUM ?
     if use_selenium:
         driver = sel.selenium_connect()
+        print("Connected to SELENIUM GRID")
 
+    cnt=0
     for book in results:
         cnt+=1
         # Query babelio website
@@ -361,24 +456,21 @@ if __name__ == "__main__":
             try:
                 matches = None
                 print("text: ", txt)
-                html = sel.selenium_find(driver, txt)
-                soup = HTMLtoSOUP(html)
-                print("HTML: ", soup)
 
-                x = soup.select(".ui-corner-all")
-                if len(x):
-                    for i in range(len(x)):
-                        # if debug: print('display each item found\n',x[i].prettify())             # hide it
+                # Get response XHR request
+                sel_result  = sel.selenium_find(driver, txt)
 
-                        ftitre = (x[i].select_one(".sgst_livres_txt")).text.strip()
-                        fauthor = (x[i].select_one(".sgst_auteur_txt")).text.strip().split("<br/>")
+                print("Transform JSON response: ", sel_result)
+                json_result = json.loads(sel_result)
 
-                        print("RESULT: ", ftitre, fauthor[0])
-                #sel.selenium_close(driver)
-                #exit()
+                print("JSON LEN : ", str(len(json_result)))
+
+                matches = parse_search_results_json(stitle, sauthors, json_result, debug=debug)
+
             except Exception as e:
                 print("Error: ", e)
                 sel.selenium_close(driver)
+                use_selenium = False
             
         else:
             soup=ret_soup(br, query, rkt=rkt, debug=debug)[0]
