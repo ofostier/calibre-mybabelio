@@ -219,6 +219,16 @@ def create_query(self, title=None, authors=None, only_first_author=True, debug=T
         # ti='+'.join(title_tokens)
         ti=' '.join(title_tokens)
 
+        # Manage VolumeXX, Vxx, TXX for volume to tome
+        text = "Voici quelques exemples: T123, t456, V789, v012, vol345 et un autre t789."
+        pattern = r'\b([TtVv]|vol)(\d+)\b'
+
+        def replacement(match):
+            print(str(int(match.group(2))))
+            return f'Tome {str(int(match.group(2)))}'
+
+        ti = re.sub(pattern, replacement, ti)
+        
         # query = BASE_URL_FIRST+('+'.join((au,ti)).strip('+'))+BASE_URL_LAST
         # if debug: log.info("return query from create_query : ", query)
         # return query
