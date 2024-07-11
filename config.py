@@ -29,5 +29,4 @@ class Config:
         self.DEBUG = config.get("DEBUG")
 
 config_path = os.path.join(os.path.dirname(__file__), "config.json")
-print(config_path)
 config = Config(open(config_path, "r"))

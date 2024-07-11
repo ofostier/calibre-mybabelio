@@ -108,7 +108,9 @@ def parse_details(soup, url, debug=True):
       print('Erreur en cherchant les étiquettes dans : %r' % url)
       print('Erreur: ',e)
       #bbl_tags = None
-      bbl_tags = ["sans étiquette babelio"]
+      bbl_tags = []
+      bbl_tags.append("sans étiquette babelio")
+      print('Force without tags')
 
   if debug:
       print("Temps après parse_tags() ... : ", time.time() - start)
@@ -476,7 +478,7 @@ def parse_tags(soup, debug=True):
     try:
       bbl_tags = list(map(fixcase, bbl_tags))
     except Exception as e:
-        print("Error: ", e)
+        print("Error tags: ", e)
     if debug:
             print("parse_tags() return bbl_tags", bbl_tags)
 
