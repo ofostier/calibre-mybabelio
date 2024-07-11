@@ -45,10 +45,9 @@ def selenium_connect() -> WebDriver:
     #navigate to babelio.com
     driver.get("https://www.babelio.com/")
     print(driver.title)
-    time.sleep(5)
-
+    time.sleep(10)
     try:
-        fuck_cookie_box = driver.find_element(By.CLASS_NAME, "button__acceptAll") #"Continue without accepting")
+        fuck_cookie_box = driver.find_element(By.CLASS_NAME, "sc-furwcr kAmNfC button button--filled button__acceptAll") #"Continue without accepting")
         fuck_cookie_box.click()
     except Exception as e:
         print("PAS DE BOUTON COOKIE ACCEPT")
