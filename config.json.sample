@@ -7,5 +7,6 @@
     "SLEEP_BETWEEN_BOOKS": 5,
     "USE_VIRTUEL_LIBRARY_NAME": "Fra",
     "USE_CALIBRE_QUERY": "",
+    "USE_SELENIUM": false,
     "DEBUG": false
 }
