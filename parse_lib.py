@@ -107,7 +107,8 @@ def parse_details(soup, url, debug=True):
   except Exception as e:
       print('Erreur en cherchant les étiquettes dans : %r' % url)
       print('Erreur: ',e)
-      bbl_tags = None
+      #bbl_tags = None
+      bbl_tags = ["sans étiquette babelio"]
 
   if debug:
       print("Temps après parse_tags() ... : ", time.time() - start)
