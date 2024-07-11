@@ -221,7 +221,7 @@ def create_query(self, title=None, authors=None, only_first_author=True, debug=T
 
         # Manage VolumeXX, Vxx, TXX for volume to tome
         text = "Voici quelques exemples: T123, t456, V789, v012, vol345 et un autre t789."
-        pattern = r'\b([TtVv]|vol)(\d+)\b'
+        pattern = r'\b([TtVv]|vol|volume)(\d+)\b'
 
         def replacement(match):
             print(str(int(match.group(2))))
