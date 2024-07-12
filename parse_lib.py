@@ -208,7 +208,10 @@ def force_tags(stitle, sauthors, stags="metadata_error"):
     print("Forcing des tags...")
     mi = Metadata(stitle, sauthors)
     mi.tags = [stags]
+    # mi.bbl= "error"
+    # mi.notagbbl=[stags]
 
+    # print(mi)
     return mi
 
 def parse_authors(soup, debug=True):

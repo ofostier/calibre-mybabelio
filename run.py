@@ -4,7 +4,7 @@ sys.path.append('/usr/local/lib/python3.10/dist-packages')
 from common_bbl import ret_soup,HTMLtoSOUP
 import json
 import re
-import datetime
+import csv
 import time
 from os import walk
 from difflib import SequenceMatcher as SM
@@ -80,7 +80,14 @@ def get_calibre_books(debug=True):
         # if book.languages[0] == 'fra' \
         #     and len(book.identifiers) == 0 \
         #     and len(book.tags) == 0:
-        
+        # print("################################")
+        # print(book)
+        # #print(book{"notagbbl"})
+        # f = calibre_db.field_ids_for("#notagbbl", book_id)
+        # print(f)
+        # n = calibre_db.field_for("#notagbbl", book_id)
+        # print(n)
+        # print("################################")
         if debug:
             print("Add: " + book.title)
         books.append(book)
@@ -448,7 +455,7 @@ if __name__ == "__main__":
         exit(1)
 
     print(str(len(results)) + ' book(s) found !!')
-
+    #print(results)
     # Do we use SELENIUM ?
     if use_selenium:
         driver = sel.selenium_connect()
@@ -459,7 +466,7 @@ if __name__ == "__main__":
         cnt_book+=1
         cnt+=1
         # Query babelio website
-        # print(book.authors)
+        #print("BBL: ",book.notagbbl)
         # print("================================")
         sauthors =(book.authors)
         stitle = book.title
@@ -505,12 +512,28 @@ if __name__ == "__main__":
                 calibre_db.set_metadata(book.id, mi)
 
                 cnt_update += 1
+
+        
+                # Write the rows data to the CSV file with quotes around each field
+                mycsv = []
+                csvligne = []
+                csvligne.append(sauthors)
+                csvligne.append(stitle)
+                csvligne.append(mi.authors)
+                csvligne.append(mi.title)
+                mycsv.append(csvligne)
+                print(mycsv)
+                with open("/code/results.csv", 'a', newline='') as csvfile:
+                    csvwriter = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
+                    csvwriter.writerows(mycsv)
+
         else:
             # Set temporary tags to avoid replay attacks
             mi = pl.force_tags(stitle, sauthors, "babelio_error")
 
             print("Tag force to babelio_error")
             calibre_db.set_metadata(book.id, mi)
+            #calibre.set_field("notagbbl", )
 
 
 
@@ -529,6 +552,7 @@ if __name__ == "__main__":
         # Update Calibre Metadata 
         #calibre_update_metadata(book)
 
+    # All done close Selenium GRID if exist
     if use_selenium and driver:
         sel.selenium_close(driver)
 
