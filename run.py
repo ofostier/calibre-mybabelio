@@ -2,6 +2,7 @@ import sys
 sys.path.append('/usr/local/lib/python3.10/dist-packages')
 
 from common_bbl import ret_soup,HTMLtoSOUP
+import os
 import json
 import re
 import datetime
@@ -421,117 +422,128 @@ def parse_search_results_json(orig_title, orig_authors, resultjson, debug=True):
 # - Run the Job and pray :D 
 if __name__ == "__main__":
     
-    base_url=config.BABELIO_URL
-    use_selenium = config.USE_SELENIUM
-    debug=config.DEBUG
-    br = Source.browser
-    query='languages:"fra" and tags:false'
+    try:
+        base_url=config.BABELIO_URL
+        use_selenium = config.USE_SELENIUM
+        debug=config.DEBUG
+        br = Source.browser
+        query='languages:"fra" and tags:false'
 
-    cnt_book = 0
-    cnt_update = 0
+        cnt_book = 0
+        cnt_update = 0
 
-    # Source._browser = None
+        # Source._browser = None
 
-    if debug:
-        print("DEBUG: " + str(debug))
+        if debug:
+            print("DEBUG: " + str(debug))
 
-    calibre_db = calibre.library.db(config.CALIBRE_DB_PATH).new_api
+        calibre_db = calibre.library.db(config.CALIBRE_DB_PATH).new_api
 
-    #query='tags:false'
-    sauthors = []
-    #stitle = []
+        #query='tags:false'
+        sauthors = []
+        #stitle = []
 
-    # Get list of books from calibre database
-    results = get_calibre_books(debug=debug)
-    if len(results) == 0:
-        print("No results found")
-        exit(1)
+        # Get list of books from calibre database
+        results = get_calibre_books(debug=debug)
+        if len(results) == 0:
+            print("No results found")
+            exit(1)
 
-    print(str(len(results)) + ' book(s) found !!')
+        print(str(len(results)) + ' book(s) found !!')
 
-    # Do we use SELENIUM ?
-    if use_selenium:
-        driver = sel.selenium_connect()
-        print("Connected to SELENIUM GRID")
+        # Do we use SELENIUM ?
+        if use_selenium:
+            driver = sel.selenium_connect()
+            print("Connected to SELENIUM GRID")
 
-    cnt=0
-    for book in results:
-        cnt_book+=1
-        cnt+=1
-        # Query babelio website
-        # print(book.authors)
-        # print("================================")
-        sauthors =(book.authors)
-        stitle = book.title
+        cnt=0
+        for book in results:
+            cnt_book+=1
+            cnt+=1
+            # Query babelio website
+            # print(book.authors)
+            # print("================================")
+            sauthors =(book.authors)
+            stitle = book.title
 
-        query,rkt, txt = create_query(Source, stitle, sauthors, debug=debug)
+            query,rkt, txt = create_query(Source, stitle, sauthors, debug=debug)
 
-        # Selenium part
-        if use_selenium and driver:
-            try:
-                matches = None
-                print("text: ", txt)
+            # Selenium part
+            if use_selenium and driver:
+                try:
+                    matches = None
+                    print("text: ", txt)
 
-                # Get response XHR request
-                sel_result  = sel.selenium_find(driver, txt)
+                    # Get response XHR request
+                    sel_result  = sel.selenium_find(driver, txt)
 
-                print("Transform JSON response: ", sel_result)
-                json_result = json.loads(sel_result)
+                    print("Transform JSON response: ", sel_result)
+                    json_result = json.loads(sel_result)
 
-                print("JSON LEN : ", str(len(json_result)))
+                    print("JSON LEN : ", str(len(json_result)))
 
-                matches = parse_search_results_json(stitle, sauthors, json_result, debug=debug)
+                    matches = parse_search_results_json(stitle, sauthors, json_result, debug=debug)
 
-            except Exception as e:
-                print("Error: ", e)
-                sel.selenium_close(driver)
-                use_selenium = False
-            
-        else:
-            soup=ret_soup(br, query, rkt=rkt, debug=debug)[0]
+                except Exception as e:
+                    print("Error: ", e)
+                    sel.selenium_close(driver)
+                    use_selenium = False
+                
+            else:
+                soup=ret_soup(br, query, rkt=rkt, debug=debug)[0]
 
-            matches = parse_search_results(stitle, sauthors, soup, debug=debug)
+                matches = parse_search_results(stitle, sauthors, soup, debug=debug)
 
-        #Parse results
-        if not matches == None and len(matches) == 1: #Only one matche found
-            for url in matches:
-                url = base_url + url
-                rsp = ret_soup(br, url)
+            #Parse results
+            if not matches == None and len(matches) == 1: #Only one matche found
+                for url in matches:
+                    url = base_url + url
+                    rsp = ret_soup(br, url)
 
-                # Parse web pages and get details
-                mi = pl.parse_details(rsp[0], url, debug=debug)
+                    # Parse web pages and get details
+                    mi = pl.parse_details(rsp[0], url, debug=debug)
 
-                # Save results into Calibre database
+                    # Save results into Calibre database
+                    calibre_db.set_metadata(book.id, mi)
+
+                    cnt_update += 1
+            else:
+                # Set temporary tags to avoid replay attacks
+                mi = pl.force_tags(stitle, sauthors, "babelio_error")
+
+                print("Tag force to babelio_error")
                 calibre_db.set_metadata(book.id, mi)
 
-                cnt_update += 1
-        else:
-            # Set temporary tags to avoid replay attacks
-            mi = pl.force_tags(stitle, sauthors, "babelio_error")
-
-            print("Tag force to babelio_error")
-            calibre_db.set_metadata(book.id, mi)
 
 
+            # info progress
+            print("Total: "+str(len(results)) +" / Progression: "+str(cnt_book) + " / Updated: "+str(cnt_update)) 
 
-        # info progress
-        print("Total: "+str(len(results)) +" / Progression: "+str(cnt_book) + " / Updated: "+str(cnt_update)) 
-
-        # Sleep to avoid bann
-        if cnt == config.NB_BOOKS_BEFORE_SLEEP:
-            cnt = 0
-            print("\nSleeping... ", config.SLEEP_AFTER_NB_BOOKS, '\n\n')
+            # Sleep to avoid bann
+            if cnt == config.NB_BOOKS_BEFORE_SLEEP:
+                cnt = 0
+                print("\nSleeping... ", config.SLEEP_AFTER_NB_BOOKS, '\n\n')
+                time.sleep(config.SLEEP_BETWEEN_BOOKS)
+            elif config.SLEEP_BETWEEN_BOOKS > 0:
+                print("\nSleeping... ", config.SLEEP_BETWEEN_BOOKS, '\n\n')
             time.sleep(config.SLEEP_BETWEEN_BOOKS)
-        elif config.SLEEP_BETWEEN_BOOKS > 0:
-            print("\nSleeping... ", config.SLEEP_BETWEEN_BOOKS, '\n\n')
-        time.sleep(config.SLEEP_BETWEEN_BOOKS)
 
-        # Update Calibre Metadata 
-        #calibre_update_metadata(book)
+            # Update Calibre Metadata 
+            #calibre_update_metadata(book)
 
-    if use_selenium and driver:
-        sel.selenium_close(driver)
+        if use_selenium and driver:
+            sel.selenium_close(driver)
 
 
-    print("Done") 
+        print("Done")
+        
+        
+    except KeyboardInterrupt:
+        print("\n\nInterrupted !!\n\n")
+        if driver:
+            sel.selenium_close(driver)
+        try:
+            sys.exit(130)
+        except SystemExit:
+            os._exit()
 
