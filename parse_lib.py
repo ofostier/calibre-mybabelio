@@ -267,10 +267,11 @@ def parse_title_series(soup, bbl_authors, debug=True):
 
           # get series infos from the series page
             try:
-                bbl_series, bbl_series_seq, bbl_series_url = parse_extended_serie(es_url, bbl_title)
-            except:
+                print('get series infos from extended')
+                bbl_series, bbl_series_seq, bbl_series_url = parse_extended_serie(es_url, bbl_title, debug)
+            except Exception as e:
                 print('Erreur en cherchant la serie dans : %r' % es_url)
-
+                print('Erreur: %r' % e)
           # ne garde que l'essence du titre
         bbl_title=bbl_title.replace("Tome","tome")          # remplace toute instance de Tome par tome
         if "tome" in bbl_title and ":" in bbl_title:
@@ -281,7 +282,7 @@ def parse_title_series(soup, bbl_authors, debug=True):
 
         return (bbl_title, bbl_series, bbl_series_seq, bbl_series_url)
 
-def parse_extended_serie(self, es_url, bbl_title, debug):
+def parse_extended_serie(es_url, bbl_title, debug):
   '''
   a serie url exists then this get the page,
   extract the serie name and the url according to babelio
@@ -290,7 +291,7 @@ def parse_extended_serie(self, es_url, bbl_title, debug):
 
   bbl_series, bbl_series_seq ="", ""
 
-  es_rsp = ret_soup(self.br, es_url, debug=debug)
+  es_rsp = ret_soup(None, es_url, debug=debug)
   es_soup = es_rsp[0]
   bbl_series_url = es_rsp[1]
   # self.log.info(self.who,"es_soup prettyfied :\n", es_soup.prettify()) # hide_it # may be long
@@ -301,6 +302,7 @@ def parse_extended_serie(self, es_url, bbl_title, debug):
       bbl_series = (es_soup.select_one("head>title").string).replace(i,"LRPCutHerePlease")
   bbl_series = bbl_series.split("LRPCutHerePlease")[0].rstrip(" -").strip()
 
+  print("BBL SERIES: " , bbl_series)  
   for i in es_soup.select(".cr_droite"):
   #             self.log.info(self.who,"es_soup.select('.cr_droite').get_text() :\n", i.get_text()) # may be long
       if bbl_title in i.get_text():
@@ -311,10 +313,10 @@ def parse_extended_serie(self, es_url, bbl_title, debug):
               bbl_series_seq = float(bbl_series_seq)
           break
 
-  if self.debug:
-      self.log.info(self.who,"bbl_series      : ", bbl_series)
-      self.log.info(self.who,"bbl_series_seq  : ", bbl_series_seq)
-      self.log.info(self.who,"bbl_series_url  : ", bbl_series_url)
+  if debug:
+      print("bbl_series      : ", bbl_series)
+      print("bbl_series_seq  : ", bbl_series_seq)
+      print("bbl_series_url  : ", bbl_series_url)
 
   return (bbl_series, bbl_series_seq, bbl_series_url)
 
