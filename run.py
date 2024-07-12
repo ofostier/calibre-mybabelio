@@ -521,6 +521,7 @@ if __name__ == "__main__":
                 csvligne.append(stitle)
                 csvligne.append(mi.authors)
                 csvligne.append(mi.title)
+                csvligne.append(book.id)
                 mycsv.append(csvligne)
                 print(mycsv)
                 with open("/code/results.csv", 'a', newline='') as csvfile:
