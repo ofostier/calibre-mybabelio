@@ -527,6 +527,8 @@ if __name__ == "__main__":
                 csvligne.append(mi.authors)
                 csvligne.append(mi.title)
                 csvligne.append(book.id)
+                if book.serie:
+                    csvligne.append(book.serie)
                 mycsv.append(csvligne)
                 print(mycsv)
                 with open("/code/results.csv", 'a', newline='') as csvfile:
