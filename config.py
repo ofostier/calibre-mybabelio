@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 
 
 class Config:
@@ -12,8 +13,15 @@ class Config:
     USE_VIRTUEL_LIBRARY_NAME = None
     USE_CALIBRE_QUERY = None
     USE_SELENIUM = None
+    SELENIUM_GRID_URL = None
+    USE_PROTON_VPN = None
     DEBUG = None
 
+    def get_docker_selenium_ip(self):
+        #with open("/tmp/output.log", "a") as output:
+        result = subprocess.run(["docker inspect   -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' elastic_yalow"], shell=True, capture_output=True, text=True) # stdout=output, stderr=output)
+        print(result)
+        exit()
 
     def __init__(self, f):
         config = json.load(f)
@@ -26,6 +34,8 @@ class Config:
         self.USE_VIRTUEL_LIBRARY_NAME = config.get("USE_VIRTUEL_LIBRARY_NAME")
         self.USE_CALIBRE_QUERY = config.get("USE_CALIBRE_QUERY")
         self.USE_SELENIUM = config.get("USE_SELENIUM")
+        self.SELENIUM_GRID_URL = config.get("SELENIUM_GRID_URL")
+        self.USE_PROTON_VPN = config.get("USE_PROTON_VPN")
         self.DEBUG = config.get("DEBUG")
 
 config_path = os.path.join(os.path.dirname(__file__), "config.json")

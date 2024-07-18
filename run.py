@@ -2,6 +2,7 @@ import sys
 sys.path.append('/usr/local/lib/python3.10/dist-packages')
 
 from common_bbl import ret_soup,HTMLtoSOUP
+import os.path
 import json
 import re
 import csv
@@ -220,7 +221,7 @@ def create_query(self, title=None, authors=None, only_first_author=True, debug=T
         #     au='+'.join(author_tokens)
             au=' '.join(author_tokens)
 
-        print('author is: ', au )
+        # print('author is: ', au )
         title = ret_clean_text(title, debug=debug)
         title_tokens = list(self.get_title_tokens(self, title, strip_joiners=False, strip_subtitle=True))
         # ti='+'.join(title_tokens)
@@ -270,7 +271,7 @@ def parse_search_results(orig_title, orig_authors, soup, debug=True):
         if x:
             # if debug: print('display serie found\n',x.prettify())                        # hide it
             lwr_serie = x.text.strip().lower()
-            # if debug: print(f"x.text.strip().lower() : {lwr_serie}")                     # hide it
+            if debug: print(f"x.text.strip().lower() : {lwr_serie}")                     # hide it
 
         x = soup.select(".cr_meta")
         if len(x):
@@ -278,6 +279,8 @@ def parse_search_results(orig_title, orig_authors, soup, debug=True):
                 # if debug: print('display each item found\n',x[i].prettify())             # hide it
 
                 titre = (x[i].select_one(".titre1")).text.strip()
+                print(f"titre : {titre}")
+                if debug: print(f"titre : {titre}")                   # hide it
               # first delete serie info in titre if present
                 if lwr_serie:
                   # get rid of serie name (assume serie name in first position with last char always "," and first ":" isolate title for serial name)
@@ -436,6 +439,7 @@ if __name__ == "__main__":
 
     cnt_book = 0
     cnt_update = 0
+    cnt_vpn = 0
 
     # Source._browser = None
 
@@ -465,6 +469,7 @@ if __name__ == "__main__":
     for book in results:
         cnt_book+=1
         cnt+=1
+
         # Query babelio website
         #print("BBL: ",book.notagbbl)
         # print("================================")
@@ -482,10 +487,10 @@ if __name__ == "__main__":
                 # Get response XHR request
                 sel_result  = sel.selenium_find(driver, txt)
 
-                print("Transform JSON response: ", sel_result)
+                # print("Transform JSON response: ", sel_result)
                 json_result = json.loads(sel_result)
 
-                print("JSON LEN : ", str(len(json_result)))
+                #print("JSON LEN : ", str(len(json_result)))
 
                 matches = parse_search_results_json(stitle, sauthors, json_result, debug=debug)
 
@@ -549,6 +554,19 @@ if __name__ == "__main__":
         elif config.SLEEP_BETWEEN_BOOKS > 0:
             print("\nSleeping... ", config.SLEEP_BETWEEN_BOOKS, '\n\n')
         time.sleep(config.SLEEP_BETWEEN_BOOKS)
+
+        # if config.USE_PROTON_VPN and cnt_vpn == 10:
+        #     vpnfile = "/code/stop-vpn.txt"
+        #     f = open(vpnfile, "w")
+        #     sel.selenium_close(driver)
+        #     while os.path.isfile(vpnfile):
+        #         sel.sleep_pause(1, "Wait about VPN Process")
+
+        #     driver= sel.selenium_connect()
+        #     cnt_vpn=0
+
+        # else:
+        #     cnt_vpn+=1
 
         # Update Calibre Metadata 
         #calibre_update_metadata(book)

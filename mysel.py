@@ -1,6 +1,7 @@
 import sys
 sys.path.append('/usr/local/lib/python3.10/dist-packages')
 
+from config import config
 from selenium  import webdriver
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support import expected_conditions as EC
@@ -16,11 +17,11 @@ import json
 timeout = 10
 
 #global driver
-#selenium_grid_url = '172.17.0.3:4444'
-GRID_HOST = '192.168.1.131:4444'
+GRID_HOST = config.SELENIUM_GRID_URL
+#GRID_HOST = '192.168.1.131:4444'
 def selenium_connect() -> WebDriver:
 
-    print("SELENIUM GRID Test Execution Started")
+    print("Coonection to SELENIUM GRID: ", GRID_HOST)
     options = webdriver.ChromeOptions()
     options.add_argument('--ignore-ssl-errors=yes')
     options.add_argument('--ignore-certificate-errors')
@@ -38,7 +39,7 @@ def selenium_connect() -> WebDriver:
     command_executor='http://'+GRID_HOST+'/wd/hub',
     options=options,
     )
-    
+    print("SELENIUM GRID is running")
     #maximize the window size
     driver.maximize_window()
     
@@ -149,12 +150,12 @@ def log_write(filename, content, method='w'):
     f.write(content)
     f.close()
 
-def sleep_pause(seconds):
+def sleep_pause(seconds, text="Sleep"):
     x=1
     while x <= seconds:
         time.sleep(1)
         #print("Sleep: ", i)
-        sys.stdout.write("Sleep: %d%%  \r" % (x) )
+        sys.stdout.write(text+": %d%%  \r" % (x) )
         sys.stdout.flush()
         x+=1
 

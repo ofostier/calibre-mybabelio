@@ -54,6 +54,7 @@ def parse_details(soup, url, debug=True):
   gathers all details needed to complete the calibre metadata, handels
   errors and sets mi
   '''
+  #bbl_series_url = []
   print("\nin parse_details(self, soup)")
   if debug:
       start = time.time()
@@ -72,6 +73,7 @@ def parse_details(soup, url, debug=True):
   except:
       print('Erreur en cherchant le titre dans : %r' % url)
       bbl_title = None
+      #bbl_series = None
 
   if debug:
       print("Temps après parse_title_series() ... : ", time.time() - start)
@@ -157,6 +159,7 @@ def parse_details(soup, url, debug=True):
       bbl_comments = bbl_reference
     # si part d'une série, crèe et ajoute la référence à la série.
       if bbl_series_url:
+          print("BBL SERIE URL:", bbl_series_url)
           bbl_serie_ref = BS('<div><p>Réf. de la série: <a href="' + bbl_series_url + '">' + bbl_series_url + '</a></p></div>',"lxml")
           bbl_comments.append(bbl_serie_ref)  # si part d'une série, ajoute la référence à la série.
     # cree la note détaillée
@@ -185,8 +188,9 @@ def parse_details(soup, url, debug=True):
   # set the matadata fields
   print("Sauvegarde des Metadata")
   mi = Metadata(bbl_title, bbl_authors)
-  mi.series = bbl_series
+  
   if bbl_series:
+      mi.series = bbl_series
       mi.series_index = bbl_series_seq
   mi.rating = bbl_rating
   if bbl_isbn:

@@ -8,5 +8,6 @@
     "USE_VIRTUEL_LIBRARY_NAME": "Fra",
     "USE_CALIBRE_QUERY": "",
     "USE_SELENIUM": false,
+    "SELENIUM_GRID_URL" : "172.17.0.3:4444"
     "DEBUG": false
 }
