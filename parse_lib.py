@@ -9,6 +9,7 @@ from common_bbl import ret_soup
 from calibre.ebooks.metadata.sources.base import fixcase
 from calibre.ebooks.metadata.sources.base import  (Source, Option)
 from calibre.ebooks.metadata.book.base import Metadata
+from calibre.ebooks.metadata import title_sort, authors_to_sort_string, author_to_author_sort
 
 ID_NAME = 'babelio_id'
 with_cover = False
@@ -204,6 +205,7 @@ def parse_details(soup, url, debug=True):
   mi.language = 'fr'
   mi.tags = bbl_tags
   mi.comments=bbl_comments
+  mi.author_sort = authors_to_sort_string(mi.author)
 
   return mi
     #result_queue.put(mi)
